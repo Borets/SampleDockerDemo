@@ -27,7 +27,11 @@ services:
     name: build-performance-demo-web-node
     runtime: node
     plan: starter
-    buildCommand: npm ci && npm install -D webpack-cli && npm run build && npm run migrate
+    buildCommand: |
+      npm ci
+      npm install -g webpack webpack-cli
+      webpack --mode production
+      npm run migrate
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
