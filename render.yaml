@@ -6,7 +6,6 @@ services:
     dockerfilePath: ./Dockerfile
     dockerCommand: npm start
     healthCheckPath: /api/health
-    buildCommand: knex migrate:latest
     envVars:
       - key: NODE_ENV
         value: production
@@ -23,6 +22,31 @@ services:
         generateValue: true
       - key: JWT_SECRET
         generateValue: true
+
+  - type: web
+    name: build-performance-demo-web-node
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: build-performance-demo-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: build-performance-demo-cache
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+    autoDeploy: true
 
   - type: redis
     name: build-performance-demo-cache
