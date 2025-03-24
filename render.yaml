@@ -33,5 +33,5 @@ databases:
   - name: build-performance-demo-db
     databaseName: app_db
     user: app_user
-    plan: starter
+    plan: standard
     ipAllowList: []
