@@ -1,0 +1,33 @@
+{
+  "name": "build-performance-demo",
+  "description": "Sample app for evaluating build performance across platforms",
+  "repository": "https://github.com/yourusername/build-performance-demo",
+  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "keywords": ["node", "express", "react", "postgresql", "redis"],
+  "addons": [
+    "heroku-postgresql",
+    "heroku-redis"
+  ],
+  "env": {
+    "NODE_ENV": {
+      "description": "Environment (production/development/test)",
+      "value": "production"
+    },
+    "SESSION_SECRET": {
+      "description": "Secret for session cookies",
+      "generator": "secret"
+    },
+    "JWT_SECRET": {
+      "description": "Secret for JWT tokens",
+      "generator": "secret"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "scripts": {
+    "postdeploy": "npm run seed"
+  }
+} 
