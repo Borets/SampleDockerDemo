@@ -1,10 +1,10 @@
 services:
   - type: web
     name: build-performance-demo-web
-    env: node
-    plan: free
-    buildCommand: npm ci && npm run build
-    startCommand: npm start
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
@@ -26,10 +26,12 @@ services:
   - type: redis
     name: build-performance-demo-cache
     ipAllowList: []
-    plan: free
+    plan: starter_plus
+    maxmemoryPolicy: noeviction
 
 databases:
   - name: build-performance-demo-db
     databaseName: app_db
     user: app_user
-    plan: free 
+    plan: starter
+    ipAllowList: []

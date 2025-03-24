@@ -15,7 +15,7 @@ const apiRoutes = require('./routes');
 
 // Create Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
 // Setup middleware
 app.use(cors());
@@ -103,8 +103,8 @@ const startServer = async () => {
     await setupDb();
     logger.info('Database connected');
     
-    app.listen(PORT, () => {
-      logger.info(`Server running on port ${PORT}`);
+    app.listen(port, () => {
+      logger.info(`Server running on port ${port}`, { service: 'build-performance-demo' });
     });
   } catch (err) {
     logger.error('Failed to start server:', err);

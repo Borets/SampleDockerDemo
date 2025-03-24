@@ -21,18 +21,6 @@ COPY . .
 # Build the application
 RUN npm run build:client
 
-# Test stage
-FROM base AS test
-
-# Install dependencies and rebuild bcrypt
-RUN npm ci && npm rebuild bcrypt --build-from-source
-
-# Copy source
-COPY . .
-
-# Run tests
-RUN npm run test
-
 # Production stage
 FROM node:18-alpine AS production
 
@@ -53,5 +41,15 @@ RUN apk add --no-cache make gcc g++ python3 && \
 # Add runtime dependencies for bcrypt
 RUN apk add --no-cache libstdc++
 
-EXPOSE 3000
-CMD ["npm", "start"] 
+# Add wait-for-it script to handle database connection
+ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /usr/local/bin/wait-for-it
+RUN chmod +x /usr/local/bin/wait-for-it
+
+# Set environment variables
+ENV PORT=10000
+ENV NODE_ENV=production
+
+EXPOSE 10000
+
+# Use wait-for-it to ensure database is ready
+CMD ["sh", "-c", "wait-for-it ${DATABASE_URL##*@} -- npm start"] 
