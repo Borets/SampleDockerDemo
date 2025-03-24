@@ -6,6 +6,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerCommand: npm start
     healthCheckPath: /api/health
+    buildCommand: knex migrate:latest
     envVars:
       - key: NODE_ENV
         value: production

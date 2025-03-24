@@ -31,6 +31,8 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/knexfile.js ./
 COPY --from=builder /app/src/server ./src/server
+COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/seeds ./seeds
 
 # Install production dependencies and rebuild bcrypt
 RUN apk add --no-cache make gcc g++ python3 && \
