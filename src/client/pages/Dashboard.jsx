@@ -19,37 +19,38 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError('');
         
         // Fetch tasks
         const response = await getTasks();
         
-        if (response.success) {
-          const tasks = response.tasks || [];
-          
-          // Compute statistics
-          const completed = tasks.filter(task => task.status === 'completed').length;
-          const pending = tasks.filter(task => task.status === 'pending').length;
-          const highPriority = tasks.filter(task => task.priority === 'high').length;
-          
-          setStats({
-            totalTasks: tasks.length,
-            completedTasks: completed,
-            pendingTasks: pending,
-            highPriority,
-          });
-          
-          // Get 5 most recent tasks
-          const recent = [...tasks]
-            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-            .slice(0, 5);
-          
-          setRecentTasks(recent);
-        } else {
-          setError('Failed to fetch tasks');
+        if (!response.tasks) {
+          throw new Error(response.error || 'Failed to fetch tasks');
         }
+        
+        const tasks = response.tasks;
+        
+        // Compute statistics
+        const completed = tasks.filter(task => task.status === 'completed').length;
+        const pending = tasks.filter(task => task.status === 'pending').length;
+        const highPriority = tasks.filter(task => task.priority === 'high').length;
+        
+        setStats({
+          totalTasks: tasks.length,
+          completedTasks: completed,
+          pendingTasks: pending,
+          highPriority,
+        });
+        
+        // Get 5 most recent tasks
+        const recent = [...tasks]
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 5);
+        
+        setRecentTasks(recent);
       } catch (error) {
-        setError('An unexpected error occurred');
-        console.error(error);
+        console.error('Dashboard error:', error);
+        setError(error.message || 'An unexpected error occurred');
       } finally {
         setLoading(false);
       }
@@ -59,12 +60,16 @@ const Dashboard = () => {
   }, []);
   
   if (loading) {
-    return <div>Loading dashboard...</div>;
+    return (
+      <div className="loading-container">
+        <div className="loading">Loading dashboard...</div>
+      </div>
+    );
   }
   
   return (
-    <div>
-      <h1>Dashboard</h1>
+    <div className="dashboard-container">
+      <h1>Welcome, {currentUser?.name || 'User'}</h1>
       
       {error && (
         <div className="alert alert-danger">{error}</div>
@@ -92,7 +97,7 @@ const Dashboard = () => {
         </div>
       </div>
       
-      <div className="card">
+      <div className="card mt-4">
         <div className="card-header">
           <h2>Recent Tasks</h2>
         </div>

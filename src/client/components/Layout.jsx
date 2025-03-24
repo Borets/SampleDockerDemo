@@ -1,8 +1,8 @@
 import React from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const Layout = () => {
+const Layout = ({ children }) => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   
@@ -38,7 +38,7 @@ const Layout = () => {
       </header>
       
       <main className="container">
-        <Outlet />
+        {children}
       </main>
       
       <footer className="footer">

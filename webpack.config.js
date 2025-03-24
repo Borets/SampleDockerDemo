@@ -9,6 +9,7 @@ module.exports = {
     filename: 'bundle.[contenthash].js',
     publicPath: '/',
     clean: true,
+    assetModuleFilename: 'assets/[hash][ext][query]'
   },
   module: {
     rules: [
@@ -30,6 +31,10 @@ module.exports = {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: 'asset/resource',
       },
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: 'asset/resource',
+      }
     ],
   },
   resolve: {

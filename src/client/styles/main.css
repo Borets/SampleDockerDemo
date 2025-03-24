@@ -16,7 +16,7 @@
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
   line-height: 1.6;
   color: var(--text-color);
   background-color: var(--light-color);
@@ -251,4 +251,31 @@ button:hover,
   .header ul li {
     margin: 0.5rem;
   }
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.loading {
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+
+/* Dashboard Container */
+.dashboard-container {
+  padding: 2rem 0;
+}
+
+.dashboard-container h1 {
+  margin-bottom: 2rem;
+  color: var(--dark-color);
+}
+
+.mt-4 {
+  margin-top: 2rem;
 } 

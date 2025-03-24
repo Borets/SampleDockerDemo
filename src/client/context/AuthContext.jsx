@@ -33,13 +33,16 @@ export const AuthProvider = ({ children }) => {
           setCurrentUser(user);
           setIsAuthenticated(true);
         } else {
-          // Invalid token, clear it
+          // Token is invalid or expired, clear it silently
           localStorage.removeItem('authToken');
+          setCurrentUser(null);
+          setIsAuthenticated(false);
         }
       } catch (error) {
-        console.error('Auth check error:', error);
-        setError('Failed to verify authentication');
+        // Clear invalid auth state silently
         localStorage.removeItem('authToken');
+        setCurrentUser(null);
+        setIsAuthenticated(false);
       } finally {
         setLoading(false);
       }

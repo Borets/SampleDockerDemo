@@ -55,21 +55,27 @@ router.post('/', async (req, res) => {
     if (!title) {
       return res.status(400).json({ message: 'Title is required' });
     }
+
+    // Ensure userId is an integer
+    const userIdInt = parseInt(userId, 10);
+    if (isNaN(userIdInt)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
     
     // Insert new task
-    const [taskId] = await db('tasks').insert({
-      user_id: userId,
+    const [newTaskId] = await db('tasks').insert({
+      user_id: userIdInt,
       title,
       description: description || null,
-      due_date: due_date || null,
+      due_date: due_date ? new Date(due_date) : null,
       priority: priority || 'medium',
       status: 'pending',
       created_at: new Date(),
       updated_at: new Date(),
     }).returning('id');
     
-    // Get the created task
-    const task = await db('tasks').where({ id: taskId }).first();
+    // Get the created task using the raw ID value
+    const task = await db('tasks').where({ id: parseInt(newTaskId.id || newTaskId, 10) }).first();
     
     return res.status(201).json({
       message: 'Task created successfully',
