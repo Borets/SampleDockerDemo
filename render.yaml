@@ -1,7 +1,7 @@
 services:
   - type: web
     name: build-performance-demo-web
-    env: docker
+    runtime: docker
     plan: starter
     dockerfilePath: ./Dockerfile
     dockerCommand: npm start
@@ -33,5 +33,5 @@ databases:
   - name: build-performance-demo-db
     databaseName: app_db
     user: app_user
-    plan: standard
+    plan: basic-1gb
     ipAllowList: []
