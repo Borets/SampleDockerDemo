@@ -1,13 +1,10 @@
 const knex = require('knex');
-const knexConfig = require('../../knexfile');
+const config = require('../../knexfile');
 const logger = require('./utils/logger');
 
 // Determine which environment configuration to use
 const environment = process.env.NODE_ENV || 'development';
-const config = knexConfig[environment];
-
-// Initialize knex instance
-const db = knex(config);
+const db = knex(config[environment]);
 
 // Setup function to verify database connection and run migrations
 const setupDb = async () => {
@@ -36,8 +33,5 @@ const setupDb = async () => {
   }
 };
 
-// Export database instance and setup function
-module.exports = {
-  db,
-  setupDb,
-}; 
+// Export the database instance directly for use in routes
+module.exports = db; 

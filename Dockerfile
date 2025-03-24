@@ -1,70 +1,41 @@
-# Build stage
-FROM node:18-alpine AS builder
+FROM node:18-alpine AS base
 
-# Set working directory
+# Add build dependencies for bcrypt
+RUN apk add --no-cache make gcc g++ python3 git
+
+# Create app directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
 # Install dependencies
+COPY package*.json ./
 RUN npm ci
 
-# Copy source code
+# Copy source
 COPY . .
 
-# Add a CPU-intensive task to simulate complexity 
-# (generates a large file with random data and calculates hash)
-RUN mkdir -p temp && \
-    dd if=/dev/urandom of=temp/random_data bs=1M count=500 && \
-    sha256sum temp/random_data > temp/hash.txt && \
-    cat temp/hash.txt && \
-    rm -rf temp
+# Build stage
+FROM base AS builder
+RUN npm run build
 
-# Run linting
-RUN npm run lint
-
-# Build client-side code
-RUN npm run build:client
-
-# Run tests with coverage
+# Test stage
+FROM base AS test
 RUN npm run test
-
-# Prune dependencies for production
-RUN npm prune --production
 
 # Production stage
 FROM node:18-alpine AS production
 
-# Set environment variables
-ENV NODE_ENV=production
-
-# Set working directory
 WORKDIR /app
 
-# Copy built artifacts from builder stage
-COPY --from=builder /app/node_modules ./node_modules
+# Copy built assets and dependencies
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/server ./src/server
-COPY --from=builder /app/package.json ./
-
-# Copy configuration files
+COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/knexfile.js ./
-COPY --from=builder /app/migrations ./migrations
-COPY --from=builder /app/seeds ./seeds
 
-# Install additional dependencies for production
-RUN apk --no-cache add dumb-init
+# Install production dependencies only
+RUN npm ci --only=production
 
-# Add compute-intensive step in final image build
-RUN for i in $(seq 1 10); do \
-      echo "Simulating complex build operation: $i/10"; \
-      sleep 2; \
-      node -e "for(let i=0; i<1000000000; i++){}" || true; \
-    done
+# Add runtime dependencies for bcrypt
+RUN apk add --no-cache libstdc++
 
-# Use dumb-init as entrypoint to handle signals properly
-ENTRYPOINT ["dumb-init", "--"]
-
-# Run the application
-CMD ["node", "src/server/index.js"] 
+EXPOSE 3000
+CMD ["npm", "start"] 

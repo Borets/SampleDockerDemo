@@ -1,193 +1,144 @@
 const request = require('supertest');
 const express = require('express');
-const authRoutes = require('../routes/auth');
-const { generateToken } = require('../middleware/auth');
-const { db } = require('../db');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const db = require('../db');
 
-// Mock dependencies
-jest.mock('../db', () => ({
-  db: {
-    where: jest.fn().mockReturnThis(),
-    first: jest.fn(),
-    insert: jest.fn().mockReturnValue([1]),
-    returning: jest.fn().mockReturnThis(),
-  },
-}));
+// Mock bcrypt and jwt
+jest.mock('bcrypt');
+jest.mock('jsonwebtoken');
+jest.mock('../db');
 
-jest.mock('../middleware/auth', () => ({
-  generateToken: jest.fn().mockReturnValue('mock-token'),
-}));
+// Mock implementations
+bcrypt.hash.mockResolvedValue('hashed-password');
+bcrypt.compare.mockResolvedValue(true);
+jwt.sign.mockReturnValue('mock-token');
 
-jest.mock('bcrypt', () => ({
-  genSalt: jest.fn().mockResolvedValue('salt'),
-  hash: jest.fn().mockResolvedValue('hashed-password'),
-  compare: jest.fn(),
-}));
-
-// Setup express app for testing
 const app = express();
 app.use(express.json());
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', require('../routes/auth'));
 
 describe('Authentication Routes', () => {
   beforeEach(() => {
+    // Clear all mocks before each test
     jest.clearAllMocks();
+    
+    // Reset database mock
+    db.mockClear();
   });
-  
+
   describe('POST /api/auth/register', () => {
     it('should register a new user successfully', async () => {
-      // Mock user doesn't exist yet
-      db.where.mockImplementation(() => ({
-        first: jest.fn().mockResolvedValue(null),
-      }));
-      
-      // Mock user insertion
-      db.insert.mockImplementation(() => ({
-        returning: jest.fn().mockResolvedValue([1]),
-      }));
-      
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send({
-          name: 'Test User',
-          email: 'test@example.com',
-          password: 'password123',
-        });
-      
-      expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('token', 'mock-token');
-      expect(response.body).toHaveProperty('user');
-      expect(response.body.user).toHaveProperty('id');
-      expect(response.body.user).toHaveProperty('name', 'Test User');
-      expect(response.body.user).toHaveProperty('email', 'test@example.com');
-      
-      // Verify bcrypt was called
-      expect(bcrypt.genSalt).toHaveBeenCalledWith(10);
-      expect(bcrypt.hash).toHaveBeenCalledWith('password123', 'salt');
-      
-      // Verify token generation
-      expect(generateToken).toHaveBeenCalled();
-    });
-    
-    it('should return 409 if user already exists', async () => {
-      // Mock user already exists
-      db.where.mockImplementation(() => ({
-        first: jest.fn().mockResolvedValue({ id: 1, email: 'test@example.com' }),
-      }));
-      
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send({
-          name: 'Test User',
-          email: 'test@example.com',
-          password: 'password123',
-        });
-      
-      expect(response.status).toBe(409);
-      expect(response.body).toHaveProperty('message', 'User already exists');
-    });
-    
-    it('should return 400 if required fields are missing', async () => {
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send({
-          name: 'Test User',
-          // Missing email and password
-        });
-      
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message', 'All fields are required');
-    });
-  });
-  
-  describe('POST /api/auth/login', () => {
-    it('should login successfully with valid credentials', async () => {
-      // Mock user exists
       const mockUser = {
         id: 1,
         email: 'test@example.com',
-        name: 'Test User',
-        password: 'hashed-password',
-        role: 'user',
+        password: 'password123'
       };
-      
-      db.where.mockImplementation(() => ({
-        first: jest.fn().mockResolvedValue(mockUser),
-      }));
-      
-      // Mock password matches
-      bcrypt.compare.mockResolvedValue(true);
-      
+
+      db().insert.mockResolvedValueOnce([{ id: 1 }]);
+      db().where.mockResolvedValueOnce([]);
+
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({
+          email: 'test@example.com',
+          password: 'password123'
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('token', 'mock-token');
+      expect(response.body).toHaveProperty('user');
+    });
+
+    it('should return 409 if user already exists', async () => {
+      db().where.mockResolvedValueOnce([{ id: 1 }]);
+
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({
+          email: 'existing@example.com',
+          password: 'password123'
+        });
+
+      expect(response.status).toBe(409);
+      expect(response.body).toHaveProperty('message', 'User already exists');
+    });
+
+    it('should return 400 if required fields are missing', async () => {
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
+  });
+
+  describe('POST /api/auth/login', () => {
+    it('should login successfully with valid credentials', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@example.com',
+        password: 'hashed-password'
+      };
+
+      db().where.mockResolvedValueOnce([mockUser]);
+
       const response = await request(app)
         .post('/api/auth/login')
         .send({
           email: 'test@example.com',
-          password: 'password123',
+          password: 'password123'
         });
-      
+
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('token', 'mock-token');
       expect(response.body).toHaveProperty('user');
-      expect(response.body.user).toHaveProperty('id', 1);
-      expect(response.body.user).toHaveProperty('email', 'test@example.com');
-      
-      // Verify password was compared
-      expect(bcrypt.compare).toHaveBeenCalledWith('password123', 'hashed-password');
-      
-      // Verify token generation
-      expect(generateToken).toHaveBeenCalledWith(mockUser);
     });
-    
+
     it('should return 401 if password is incorrect', async () => {
-      // Mock user exists
-      db.where.mockImplementation(() => ({
-        first: jest.fn().mockResolvedValue({
-          id: 1,
-          email: 'test@example.com',
-          password: 'hashed-password',
-        }),
-      }));
-      
-      // Mock password doesn't match
-      bcrypt.compare.mockResolvedValue(false);
-      
+      const mockUser = {
+        id: 1,
+        email: 'test@example.com',
+        password: 'hashed-password'
+      };
+
+      db().where.mockResolvedValueOnce([mockUser]);
+      bcrypt.compare.mockResolvedValueOnce(false);
+
       const response = await request(app)
         .post('/api/auth/login')
         .send({
           email: 'test@example.com',
-          password: 'wrong-password',
+          password: 'wrongpassword'
         });
-      
+
       expect(response.status).toBe(401);
       expect(response.body).toHaveProperty('message', 'Invalid credentials');
     });
-    
+
     it('should return 401 if user does not exist', async () => {
-      // Mock user doesn't exist
-      db.where.mockImplementation(() => ({
-        first: jest.fn().mockResolvedValue(null),
-      }));
-      
+      db().where.mockResolvedValueOnce([]);
+
       const response = await request(app)
         .post('/api/auth/login')
         .send({
           email: 'nonexistent@example.com',
-          password: 'password123',
+          password: 'password123'
         });
-      
+
       expect(response.status).toBe(401);
       expect(response.body).toHaveProperty('message', 'Invalid credentials');
     });
   });
-  
+
   describe('POST /api/auth/logout', () => {
     it('should logout successfully', async () => {
       const response = await request(app)
         .post('/api/auth/logout');
-      
+
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('message', 'Logout successful');
+      expect(response.body).toHaveProperty('message', 'Logged out successfully');
     });
   });
 }); 

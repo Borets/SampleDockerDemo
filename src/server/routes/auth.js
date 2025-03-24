@@ -1,17 +1,17 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const { generateToken } = require('../middleware/auth');
-const { db } = require('../db');
+const jwt = require('jsonwebtoken');
+const db = require('../db');
 const logger = require('../utils/logger');
 const router = express.Router();
 
 // Register new user
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password } = req.body;
     
     // Validate input
-    if (!email || !password || !name) {
+    if (!email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
     
@@ -23,22 +23,16 @@ router.post('/register', async (req, res) => {
     }
     
     // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
     
     // Insert new user
     const [userId] = await db('users').insert({
       email,
       password: hashedPassword,
-      name,
-      role: 'user',
-      created_at: new Date(),
-      updated_at: new Date(),
     }).returning('id');
     
     // Generate token
-    const user = { id: userId, email, role: 'user' };
-    const token = generateToken(user);
+    const token = jwt.sign({ userId }, process.env.JWT_SECRET || 'your-secret-key');
     
     // Return token and user info
     return res.status(201).json({
@@ -47,13 +41,11 @@ router.post('/register', async (req, res) => {
       user: {
         id: userId,
         email,
-        name,
-        role: 'user',
       },
     });
   } catch (error) {
     logger.error('Registration error:', error);
-    return res.status(500).json({ message: 'Registration failed' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -64,7 +56,7 @@ router.post('/login', async (req, res) => {
     
     // Validate input
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+      return res.status(400).json({ message: 'All fields are required' });
     }
     
     // Find user
@@ -75,14 +67,14 @@ router.post('/login', async (req, res) => {
     }
     
     // Compare passwords
-    const isMatch = await bcrypt.compare(password, user.password);
+    const validPassword = await bcrypt.compare(password, user.password);
     
-    if (!isMatch) {
+    if (!validPassword) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     
     // Generate token
-    const token = generateToken(user);
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'your-secret-key');
     
     // Return token and user info
     return res.status(200).json({
@@ -91,13 +83,11 @@ router.post('/login', async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
-        role: user.role,
       },
     });
   } catch (error) {
     logger.error('Login error:', error);
-    return res.status(500).json({ message: 'Login failed' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -105,7 +95,7 @@ router.post('/login', async (req, res) => {
 router.post('/logout', (req, res) => {
   // In a real app, you might want to invalidate the token
   // But for this demo, we'll just return success
-  res.status(200).json({ message: 'Logout successful' });
+  res.status(200).json({ message: 'Logged out successfully' });
 });
 
 module.exports = router; 

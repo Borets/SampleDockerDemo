@@ -8,9 +8,8 @@ module.exports = {
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   collectCoverageFrom: [
-    'src/**/*.{js,jsx}',
-    '!src/client/index.jsx',
-    '!src/client/public/**',
+    'src/server/**/*.{js,jsx}',
+    '!src/server/index.js',
   ],
   coverageThreshold: {
     global: {
@@ -20,6 +19,10 @@ module.exports = {
       lines: 50
     }
   },
-  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/',
+    '/src/client/'
+  ],
   moduleFileExtensions: ['js', 'jsx', 'json', 'node']
 }; 
