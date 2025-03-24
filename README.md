@@ -1,142 +1,130 @@
-# Build Performance Demo
+# Task Management Application
 
-A medium-complexity sample application designed to evaluate build performance across different platforms (Render.com, Heroku, GitHub Actions, etc.)
+A full-stack task management application built with modern technologies and deployed on Render.com.
 
 ## Features
 
-- Full-stack JavaScript application with Express and React
-- PostgreSQL database integration with Knex.js for migrations and queries
-- Redis for session management and caching
-- Authentication with JWT tokens
-- CRUD operations for task management
-- Unit and integration tests
-- Docker configuration with multi-stage builds
-- Platform-specific configuration files
+- User authentication with JWT
+- Task creation, reading, updating, and deletion (CRUD)
+- Task prioritization and status management
+- Dashboard with task statistics
+- Responsive design
+- Session management with Redis
+- Database migrations and seeding
 
 ## Tech Stack
 
-- **Backend:** Node.js, Express
-- **Frontend:** React
-- **Database:** PostgreSQL
-- **Cache:** Redis
-- **Authentication:** JWT, bcrypt
-- **Testing:** Jest, Supertest
-- **Build Tools:** Docker, Webpack
-- **Languages:** JavaScript, HTML, CSS
+### Backend
+- Node.js
+- Express.js
+- PostgreSQL (with Knex.js for migrations and queries)
+- Redis for session management
+- JWT for authentication
+- bcrypt for password hashing
+
+### Frontend
+- React
+- React Router for navigation
+- Webpack for bundling
+- CSS for styling
+
+### DevOps & Deployment
+- Docker for containerization
+- Docker Compose for local development
+- Render.com for cloud deployment
+- GitHub Actions for CI/CD
 
 ## Local Development
 
-### Prerequisites
-
-- Node.js v18+
-- Docker and Docker Compose
-- PostgreSQL (local or Docker)
-- Redis (local or Docker)
-
-### Setup with Docker Compose (recommended)
-
+1. Clone the repository:
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/build-performance-demo.git
-cd build-performance-demo
-
-# Start all services
-docker-compose up -d
-
-# The application will be available at http://localhost:3000
+git clone <repository-url>
+cd <repository-name>
 ```
 
-### Manual Setup
-
+2. Install dependencies:
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/build-performance-demo.git
-cd build-performance-demo
-
-# Install dependencies
 npm install
-
-# Create .env file
-cp .env.example .env
-# Edit .env with your database and Redis URLs
-
-# Run migrations
-npm run migrate
-
-# Seed the database (optional)
-npm run seed
-
-# Start development server
-npm run dev
-
-# The application will be available at http://localhost:3000
 ```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+4. Start with Docker Compose:
+```bash
+docker-compose up
+```
+
+The application will be available at `http://localhost:3000`
+
+## Database Migrations
+
+Run migrations:
+```bash
+npm run migrate
+```
+
+Run seeds:
+```bash
+npm run seed
+```
+
+## Production Deployment
+
+The application is configured for deployment on Render.com with:
+- Dockerized web service
+- Managed PostgreSQL database
+- Managed Redis instance
+
+### Deployment Configuration
+- Web service: Starter plan
+- PostgreSQL: Basic-1GB plan with daily backups
+- Redis: Standard plan with persistence
+
+## Environment Variables
+
+- `NODE_ENV`: Environment (development/production)
+- `DATABASE_URL`: PostgreSQL connection string
+- `REDIS_URL`: Redis connection string
+- `SESSION_SECRET`: Secret for session management
+- `JWT_SECRET`: Secret for JWT tokens
+- `PORT`: Server port (default: 3000, Render: 10000)
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register`: Register new user
+- `POST /api/auth/login`: Login user
+- `POST /api/auth/logout`: Logout user
+
+### Tasks
+- `GET /api/tasks`: List all tasks
+- `POST /api/tasks`: Create new task
+- `GET /api/tasks/:id`: Get task details
+- `PUT /api/tasks/:id`: Update task
+- `DELETE /api/tasks/:id`: Delete task
+
+### User
+- `GET /api/users/me`: Get current user info
 
 ## Testing
 
+Run tests:
 ```bash
-# Run all tests
 npm test
-
-# Run tests with coverage
-npm test -- --coverage
 ```
 
-## Deployment
+## Contributing
 
-### Render.com
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-This application includes a `render.yaml` file for easy deployment to Render.com. 
+## License
 
-1. Push your code to GitHub
-2. In Render.com dashboard, choose "Blueprint"
-3. Connect to your GitHub repo
-4. Render will automatically deploy the web service, PostgreSQL database, and Redis instance
-
-### Heroku
-
-This application includes Heroku configuration files.
-
-```bash
-# Login to Heroku
-heroku login
-
-# Create a new Heroku app
-heroku create
-
-# Add PostgreSQL addon
-heroku addons:create heroku-postgresql:hobby-dev
-
-# Add Redis addon
-heroku addons:create heroku-redis:hobby-dev
-
-# Deploy to Heroku
-git push heroku main
-
-# Run migrations
-heroku run npm run migrate
-```
-
-### GitHub Actions
-
-The included GitHub Actions workflow in `.github/workflows/ci.yml` will:
-
-1. Run tests on every push and pull request
-2. Build and push a Docker image to GitHub Container Registry on merges to main
-
-## Build Performance Evaluation
-
-This application is specifically designed to have a moderately complex build process that can be used to evaluate performance across different platforms:
-
-- Multi-stage Docker build
-- Webpack bundling with optimization
-- Comprehensive test suite
-- Artificial computational tasks to extend build time
-
-When benchmarking, consider measuring:
-
-- Total build time
-- Time for specific stages (dependencies, tests, bundling)
-- Resource utilization (CPU, memory)
-- Cache effectiveness
-- Build logs for insights 
+This project is licensed under the MIT License. 

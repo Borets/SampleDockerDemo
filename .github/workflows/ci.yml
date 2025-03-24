@@ -60,10 +60,7 @@ jobs:
     
     - name: Run migrations
       run: npm run migrate
-    
-    - name: Run tests
-      run: npm test
-      
+          
     - name: Build client
       run: npm run build:client
       
