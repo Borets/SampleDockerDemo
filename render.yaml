@@ -26,7 +26,7 @@ services:
   - type: redis
     name: build-performance-demo-cache
     ipAllowList: []
-    plan: starter
+    plan: standard
     maxmemoryPolicy: noeviction
 
 databases:
