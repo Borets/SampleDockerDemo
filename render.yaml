@@ -29,8 +29,8 @@ services:
     plan: starter
     buildCommand: |
       npm ci
-      npm install -g webpack webpack-cli
-      webpack --mode production
+      npm install -D webpack webpack-cli mini-css-extract-plugin css-loader style-loader babel-loader @babel/core @babel/preset-env @babel/preset-react
+      npm run build
       npm run migrate
     startCommand: npm start
     healthCheckPath: /api/health
