@@ -6,19 +6,31 @@ RUN apk add --no-cache make gcc g++ python3 git
 # Create app directory
 WORKDIR /app
 
-# Install dependencies
+# Copy package files
 COPY package*.json ./
-RUN npm ci
+
+# Build stage
+FROM base AS builder
+
+# Install dependencies and rebuild bcrypt
+RUN npm ci && npm rebuild bcrypt --build-from-source
 
 # Copy source
 COPY . .
 
-# Build stage
-FROM base AS builder
-RUN npm run build
+# Build the application
+RUN npm run build:client
 
 # Test stage
 FROM base AS test
+
+# Install dependencies and rebuild bcrypt
+RUN npm ci && npm rebuild bcrypt --build-from-source
+
+# Copy source
+COPY . .
+
+# Run tests
 RUN npm run test
 
 # Production stage
@@ -30,9 +42,13 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/knexfile.js ./
+COPY --from=builder /app/src/server ./src/server
 
-# Install production dependencies only
-RUN npm ci --only=production
+# Install production dependencies and rebuild bcrypt
+RUN apk add --no-cache make gcc g++ python3 && \
+    npm ci --only=production && \
+    npm rebuild bcrypt --build-from-source && \
+    apk del make gcc g++ python3
 
 # Add runtime dependencies for bcrypt
 RUN apk add --no-cache libstdc++

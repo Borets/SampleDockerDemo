@@ -6,10 +6,10 @@
   "scripts": {
     "start": "node src/server/index.js",
     "dev": "nodemon src/server/index.js",
-    "build": "npm run build:client && npm run test",
+    "build": "npm run build:client",
     "build:client": "webpack --mode production",
     "lint": "eslint --max-warnings 100 'src/**/*.{js,jsx}'",
-    "test": "jest --config jest.config.js --coverage",
+    "test": "jest --config jest.config.js --coverage --detectOpenHandles",
     "migrate": "knex migrate:latest",
     "seed": "knex seed:run",
     "heroku-postbuild": "npm run build"
