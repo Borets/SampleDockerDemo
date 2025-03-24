@@ -11,7 +11,7 @@ exports.seed = async function(knex) {
   
   // Create admin user
   const adminPassword = await bcrypt.hash('admin123', 10);
-  const [adminId] = await knex('users').insert({
+  const adminResult = await knex('users').insert({
     name: 'Admin User',
     email: 'admin@example.com',
     password: adminPassword,
@@ -20,9 +20,11 @@ exports.seed = async function(knex) {
     updated_at: new Date(),
   }).returning('id');
   
+  const adminId = adminResult[0].id || adminResult[0];
+  
   // Create regular user
   const userPassword = await bcrypt.hash('user123', 10);
-  const [userId] = await knex('users').insert({
+  const userResult = await knex('users').insert({
     name: 'Regular User',
     email: 'user@example.com',
     password: userPassword,
@@ -30,6 +32,8 @@ exports.seed = async function(knex) {
     created_at: new Date(),
     updated_at: new Date(),
   }).returning('id');
+  
+  const userId = userResult[0].id || userResult[0];
   
   // Create tasks for regular user
   const taskData = [

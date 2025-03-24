@@ -1,5 +1,6 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: './src/client/index.jsx',
@@ -7,6 +8,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.[contenthash].js',
     publicPath: '/',
+    clean: true,
   },
   module: {
     rules: [
@@ -36,6 +38,10 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin({
       filename: 'styles.[contenthash].css',
+    }),
+    new HtmlWebpackPlugin({
+      template: path.resolve(__dirname, 'src/client/index.html'),
+      inject: true,
     }),
   ],
   // Add an artificial delay to the build process to simulate complexity

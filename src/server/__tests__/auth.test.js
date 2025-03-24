@@ -2,7 +2,7 @@ const request = require('supertest');
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('../db');
+const { db } = require('../db');
 
 // Mock bcrypt and jwt
 jest.mock('bcrypt');

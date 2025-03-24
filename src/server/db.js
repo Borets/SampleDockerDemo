@@ -33,5 +33,8 @@ const setupDb = async () => {
   }
 };
 
-// Export the database instance directly for use in routes
-module.exports = db; 
+// Export the database instance and setup function
+module.exports = {
+  db,
+  setupDb
+}; 

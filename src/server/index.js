@@ -9,7 +9,7 @@ const { createClient } = require('redis');
 const session = require('express-session');
 const RedisStore = require('connect-redis').default;
 const rateLimit = require('express-rate-limit');
-const { setupDb } = require('./db');
+const { db, setupDb } = require('./db');
 const logger = require('./utils/logger');
 const apiRoutes = require('./routes');
 
@@ -20,7 +20,11 @@ const PORT = process.env.PORT || 3000;
 // Setup middleware
 app.use(cors());
 app.use(morgan('combined'));
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: false,
+}));
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -77,14 +81,12 @@ app.use((req, res, next) => {
 // API routes
 app.use('/api', apiRoutes);
 
-// Serve static assets in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../../dist')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../dist/index.html'));
-  });
-}
+// Serve static assets
+app.use(express.static(path.join(__dirname, '../../dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../dist/index.html'));
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

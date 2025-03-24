@@ -1,8 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const { db } = require('../db');
 const jwt = require('jsonwebtoken');
-const db = require('../db');
 const logger = require('../utils/logger');
+const { generateToken } = require('../middleware/auth');
 const router = express.Router();
 
 // Register new user
@@ -29,19 +30,23 @@ router.post('/register', async (req, res) => {
     const [userId] = await db('users').insert({
       email,
       password: hashedPassword,
+      role: 'user', // Default role
     }).returning('id');
     
-    // Generate token
-    const token = jwt.sign({ userId }, process.env.JWT_SECRET || 'your-secret-key');
+    const user = {
+      id: userId,
+      email,
+      role: 'user',
+    };
+    
+    // Generate token using the shared function
+    const token = generateToken(user);
     
     // Return token and user info
     return res.status(201).json({
       message: 'User registered successfully',
       token,
-      user: {
-        id: userId,
-        email,
-      },
+      user,
     });
   } catch (error) {
     logger.error('Registration error:', error);
@@ -73,8 +78,12 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     
-    // Generate token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'your-secret-key');
+    // Generate token using the shared function
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role || 'user',
+    });
     
     // Return token and user info
     return res.status(200).json({
@@ -83,6 +92,7 @@ router.post('/login', async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
+        role: user.role || 'user',
       },
     });
   } catch (error) {
