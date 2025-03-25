@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # Add build dependencies for bcrypt
 RUN apk add --no-cache make gcc g++ python3 git
@@ -22,7 +22,7 @@ COPY . .
 RUN npm run build:client
 
 # Production stage
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 
 WORKDIR /app
 

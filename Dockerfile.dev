@@ -1,15 +1,28 @@
-FROM node:18.17.1
+FROM node:20-alpine AS base
 
+# Add build dependencies for bcrypt
+RUN apk add --no-cache make gcc g++ python3 git
+
+# Create app directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies and rebuild bcrypt
+RUN npm ci && npm rebuild bcrypt --build-from-source
 
 # Copy application code
 COPY . .
 
+# Add runtime dependencies for bcrypt
+RUN apk add --no-cache libstdc++
+
+# Set environment variables
+ENV PORT=3000
+ENV NODE_ENV=development
+
 EXPOSE 3000
+
+# Start development server
 CMD ["npm", "run", "dev"] 
